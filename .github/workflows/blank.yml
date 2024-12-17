@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Build LIBC Binary
 
 # Controls when the workflow will run
 on:
@@ -16,15 +16,35 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build-libc:
     # The type of runner that the job will run on
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Display LIBC Version
-        run: ls -la /usr/lib/x86_64-linux-gnu
+      - name: Update and Install Dependancies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y gcc make gdb
+          sudo apt-get install -y texinfo gawk bison sed
+          sudo apt-get install -y python3-dev python3-pip python-is-python3
+          sudo pip install pexpect
+
+      - name: Clone GLIBC
+        run: |
+          git clone https://sourceware.org/git/glibc.git
+
+      - name: "Debug: Check Current Working Directory"
+        working-directory: glibc
+        run: |
+          pwd
+
+      - name: Checkout v2.29
+        working-directory: glibc
+        run: |
+          git checkout glibc-2.29
+      
