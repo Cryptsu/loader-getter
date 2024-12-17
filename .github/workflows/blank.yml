@@ -32,19 +32,41 @@ jobs:
           sudo apt-get install -y gcc make gdb
           sudo apt-get install -y texinfo gawk bison sed
           sudo apt-get install -y python3-dev python3-pip python-is-python3
+          sudo apt-get install -y gcc-multilib g++-multilib
           sudo pip install pexpect
 
       - name: Clone GLIBC
         run: |
           git clone https://sourceware.org/git/glibc.git
 
-      - name: "Debug: Check Current Working Directory"
-        working-directory: glibc
-        run: |
-          pwd
-
       - name: Checkout v2.29
         working-directory: glibc
         run: |
           git checkout glibc-2.29
+
+      - name: Create Directories
+        working-directory: glibc
+        run: |
+          mkdir build && mkdir install
       
+      - name: Configure 64-bit Library
+        working-directory: glibc/build
+        run: |
+          ../configure \
+            --prefix=$(realpath ../install) \
+            --host=x86_64-linux-gnu \
+            --build=x86_64-linux-gnu \
+              CC="gcc -m64" \
+              CXX="g++ -m64" \
+              CFLAGS="-O2" \
+              CXXFLAGS="-O2"
+
+      - name: Build 64-bit Library
+        working-directory: glibc/build
+        run: |
+          make && make install
+
+      - name: "Debug: Check Output Files"
+        working-directory: glibc/install
+        run: |
+          ls -la
